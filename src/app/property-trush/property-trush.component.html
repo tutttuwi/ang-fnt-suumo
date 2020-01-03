@@ -1,0 +1,55 @@
+<main>
+  <div class="container">
+    <div class="mx-auto mt-3">
+      <div>
+        <h4>ゴミ箱</h4>
+      </div>
+    </div>
+    <div class="mx-auto my-1 py-3">
+      <div *ngIf="propertydata.length == 0" class="text-center">
+        <p>物件情報がありません</p>
+      </div>
+      <div *ngIf="propertydata.length > 0">
+        <div class="m-1">
+          <button class="btn btn-outline-danger" (click)="delPropertyAll()">全削除</button>
+        </div>
+        <table class="table table-striped">
+          <thead class="thead-light trushTableHeader">
+            <tr>
+              <th style="width: 90px;">日付</th>
+              <th>タイトル</th>
+              <th>所在地/駅徒歩</th>
+              <th class="d-none d-md-table-cell">家賃/費用</th>
+              <th class="d-none d-md-table-cell">間取り</th>
+              <th class="d-none d-md-table-cell">築年数</th>
+              <th class="d-none d-md-table-cell">階数</th>
+              <th class="d-none d-md-table-cell">建物種別</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let property of propertydata">
+              <td>{{ property.searchdate }}</td>
+              <td>
+                <a class="text-primary font-weight-bold" target="_blank" href="{{ property.url }}">{{ property.title }}</a>
+              </td>
+              <td>{{ property.place }}</td>
+              <td class="d-none d-md-table-cell">{{ property.feeinfo }}</td>
+              <td class="d-none d-md-table-cell">
+                {{ property.floorplan }}<img class="img-fluid" src="{{ property.imgurl }}" alt="間取り画像" />
+              </td>
+              <td class="d-none d-md-table-cell">{{ property.age }}</td>
+              <td class="d-none d-md-table-cell">{{ property.floor }}</td>
+              <td class="d-none d-md-table-cell">{{ property.buildingtype }}</td>
+              <td>
+                <button type="button" class="close" aria-label="閉じる" (click)="delProperty(property.url)">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</main>

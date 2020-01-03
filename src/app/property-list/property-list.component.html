@@ -1,0 +1,193 @@
+<main>
+  <div class="container">
+    <div class="mx-auto mt-3">
+      <div>
+        <h4>検索情報一覧</h4>
+      </div>
+      <!-- Tabs -->
+      <ul class="nav nav-tabs">
+        <li class="nav-item">
+          <a href="#search" class="nav-link nav-link-grn active" data-toggle="tab">個別検索</a>
+        </li>
+        <li class="nav-item">
+          <a href="#bulksearch" class="nav-link" data-toggle="tab">一括検索</a>
+        </li>
+      </ul>
+      <!-- Tab Contents -->
+      <form [formGroup]="searchForm">
+        <div class="tab-content" style="height: 100px;">
+          <div id="search" class="tab-pane active py-3">
+            <div class="mb-1">
+              <button class="badge badge-success" data-toggle="modal" data-target="#urlInputExampleModal">入力例</button>
+            </div>
+            <div class="input-group mb-3">
+              <input
+                formControlName="selurl"
+                id="pasteurl"
+                type="text"
+                class="form-control"
+                placeholder="SUUMO物件URLを貼り付けてください"
+                aria-label="Recipient's username"
+              />
+              <div class="input-group-append">
+                <button id="urlbtn" class="btn btn-outline-success" type="button" (click)="getPropertydata()" [disabled]="selurl.invalid">
+                  検索
+                </button>
+              </div>
+            </div>
+          </div>
+          <div id="bulksearch" class="tab-pane py-3">
+            <div class="mb-1">
+              <button class="badge badge-success" data-toggle="modal" data-target="#urlsInputExampleModal">入力例</button>
+            </div>
+            <div class="input-group mb-3">
+              <textarea
+                formControlName="selurls"
+                id="pasteurls"
+                type="text"
+                rows="1"
+                class="form-control"
+                placeholder="複数行に分けてSUUMO物件URLを貼り付けてください"
+                aria-label="Recipient's username"
+              ></textarea>
+              <div class="input-group-append">
+                <button
+                  id="urlsbtn"
+                  class="btn btn-outline-success"
+                  type="button"
+                  (click)="getPropertydataList()"
+                  [disabled]="selurls.invalid"
+                >
+                  検索
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="cauntion"></div>
+      </form>
+    </div>
+    <div class="mx-auto my-1 py-3">
+      <div *ngIf="propertydata.length == 0" class="text-center">
+        <p>物件情報がありません</p>
+      </div>
+      <div *ngIf="propertydata.length > 0">
+        <div class="m-1">
+          <button class="btn btn-outline-danger" (click)="delPropertyAll()">全削除</button>
+        </div>
+        <table class="table table-striped">
+          <thead class="thead-light searchTableHeader">
+            <tr>
+              <th style="width: 90px;">優先度</th>
+              <th>タイトル</th>
+              <th>所在地/駅徒歩</th>
+              <th class="d-none d-md-table-cell">家賃/費用</th>
+              <th class="d-none d-md-table-cell">間取り</th>
+              <th class="d-none d-md-table-cell">築年数</th>
+              <th class="d-none d-md-table-cell">階数</th>
+              <th class="d-none d-md-table-cell">建物種別</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let property of propertydata" [class.bg-warning]="property.priority == 'top'">
+              <td>
+                <select class="custom-select" name="" id="" (change)="changePriority(property.url, $event)"
+                  ><option value="top" [selected]="property.priority == 'top'">高</option
+                  ><option value="mid" [selected]="property.priority == 'mid'">中</option
+                  ><option value="low" [selected]="property.priority == 'low'">低</option></select
+                >
+              </td>
+              <td>
+                <a class="text-primary font-weight-bold" target="_blank" href="{{ property.url }}">{{ property.title }}</a>
+              </td>
+              <td>{{ property.place }}</td>
+              <td class="d-none d-md-table-cell">{{ property.feeinfo }}</td>
+              <td class="d-none d-md-table-cell">
+                {{ property.floorplan }}<img class="img-fluid" src="{{ property.imgurl }}" alt="間取り画像" />
+              </td>
+              <td class="d-none d-md-table-cell">{{ property.age }}</td>
+              <td class="d-none d-md-table-cell">{{ property.floor }}</td>
+              <td class="d-none d-md-table-cell">{{ property.buildingtype }}</td>
+              <td>
+                <button type="button" class="close" aria-label="閉じる" (click)="delProperty(property.url)">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- モーダルの設定 -->
+<div class="modal fade" id="urlInputExampleModal" tabindex="-1" role="dialog" aria-labelledby="urlInputExampleModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">入力例</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="閉じる">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="input-group mb-3">
+          <input #urlExample type="text" class="form-control" value="https://suumo.jp/chintai/jnc_000045689545/?bc=100143335012" />
+          <div class="input-group-append">
+            <button
+              tabindex="0"
+              class="btn btn-outline-success"
+              type="button"
+              role="button"
+              data-toggle="popover"
+              title="却下するポップアップ"
+              data-trigger="focus"
+              (click)="copyText(urlExample)"
+              data-content="Copied"
+            >
+              コピー
+            </button>
+          </div>
+        </div>
+      </div>
+      <!-- /.modal-footer -->
+    </div>
+    <!-- /.modal-content -->
+  </div>
+  <!-- /.modal-dialog -->
+</div>
+<!-- /.modal -->
+
+<!-- モーダルの設定(一括) -->
+<div class="modal fade" id="urlsInputExampleModal" tabindex="-1" role="dialog" aria-labelledby="urlsInputExampleModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">入力例</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="閉じる">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="input-group mb-3">
+          <textarea #urlsExample type="text" class="form-control">
+https://suumo.jp/chintai/jnc_000033715553/?bc=100180926542&#13;https://suumo.jp/chintai/jnc_000041980610/?bc=100179630370&#13;https://suumo.jp/chintai/jnc_000047412551/?bc=100180438505&#13;https://suumo.jp/chintai/jnc_000049561411/?bc=100178435609&#13;https://suumo.jp/chintai/jnc_000049661123/?bc=100160868579</textarea
+          >
+          <div class="input-group-append">
+            <button class="btn btn-outline-success" type="button" (click)="copyText(urlsExample)">
+              コピー
+            </button>
+          </div>
+        </div>
+      </div>
+      <!-- /.modal-footer -->
+    </div>
+    <!-- /.modal-content -->
+  </div>
+  <!-- /.modal-dialog -->
+</div>
+<!-- /.modal -->
