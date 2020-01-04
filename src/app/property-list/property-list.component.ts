@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { Property } from '../property/property';
 import { PropertyServiceService } from '../property-service.service';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { inject } from '@angular/core/testing';
 
 const cautionTemplete = `<div class="alert alert-warning alert-dismissible fade show" role="alert">
 <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span>
@@ -65,57 +64,64 @@ export class PropertyListComponent implements OnInit {
   }
   async getPropertydata(searchurl: string) {
     this.initCaution();
-    const bkText = document.getElementById('urlbtn').innerHTML;
-    document.getElementById('urlbtn').innerHTML = lodingTemplete + document.getElementById('urlbtn').innerHTML;
-
+    this.changeSearchStatus('urlbtn');
     const url = searchurl ? searchurl : this.selurl.value;
-    console.log(url);
-    if (this.psv.isNotSuumo(url)) {
-      this.createCaution('URLが不正です。(suumoのURLではありません)' + url);
-      return;
+    try {
+      console.log(url);
+      if (this.psv.isNotSuumo(url)) {
+        this.createCaution('URLが不正です。(suumoのURLではありません)' + url);
+        return;
+      }
+      const data = await this.psv.getPropertydata(url);
+      if (!data.isok) {
+        this.createCaution('只今混み合っているか、URLが検索に対応しておりません。<' + url + '>');
+        return;
+      }
+      if (!data.title) {
+        this.createCaution('データの取得に失敗しました。掲載が終了したかURLが間違っている可能性があります。<' + url + '>');
+        return;
+      }
+      const date = new Date();
+      data.priority = 'mid'; // set default: priority
+      data.searchdate = new Date(date.setTime(date.getTime() + 1000 * 60 * 60 * 9)); // JSTに変換;
+      console.log('--- isNotSuumo: after');
+      if (this.propertydata.every(p => p.url !== url)) {
+        console.log('push');
+        console.log(JSON.stringify(data));
+        this.propertydata.unshift(data);
+        localStorage.setItem('propertydata', JSON.stringify(this.propertydata));
+        this.addHistory(data);
+      } else {
+        console.log('alreadry push');
+        alert('すでに検索済みです' + url);
+      }
+    } catch (e) {
+      console.log(JSON.stringify(e));
+    } finally {
+      this.changeSearchStatus('urlbtn');
     }
-    const data = await this.psv.getPropertydata(url);
-    if (!data.isok) {
-      this.createCaution('只今混み合っています。申し訳ございませんが再度お試し下さい。<' + url + '>');
-      return;
-    }
-    if (!data.title) {
-      this.createCaution('データの取得に失敗しました。掲載が終了したかURLが間違っている可能性があります。<' + url + '>');
-      return;
-    }
-    const date = new Date();
-    data.priority = 'mid'; // set default: priority
-    data.searchdate = new Date(date.setTime(date.getTime() + 1000 * 60 * 60 * 9)); // JSTに変換;
-    console.log('--- isNotSuumo: after');
-    if (this.propertydata.every(p => p.url !== url)) {
-      console.log('push');
-      console.log(JSON.stringify(data));
-      this.propertydata.unshift(data);
-      localStorage.setItem('propertydata', JSON.stringify(this.propertydata));
-      this.addHistory(data);
-    } else {
-      console.log('alreadry push');
-      alert('すでに検索済みです' + url);
-    }
-    document.getElementById('urlbtn').innerHTML = bkText;
   }
   async getPropertydataList() {
     this.initCaution();
-    const bkText = document.getElementById('urlsbtn').innerHTML;
-    document.getElementById('urlsbtn').innerHTML = lodingTemplete + document.getElementById('urlsbtn').innerHTML;
-    console.log(this.selurls.value);
-    const urls = this.selurls.value.split('\n');
-    if (urls.length > 10) {
-      this.createCaution('大変申し訳ございませんが、１度に１０件以上の検索はご遠慮ください。');
-      return;
-    }
-    for (const url of urls) {
-      if (!url) {
+    this.changeSearchStatus('urlsbtn');
+    try {
+      console.log(this.selurls.value);
+      const urls = this.selurls.value.split('\n');
+      if (urls.length > 10) {
+        this.createCaution('大変申し訳ございませんが、１度に１０件以上の検索はご遠慮ください。');
         return;
       }
-      await this.getPropertydata(url);
+      for (const url of urls) {
+        if (!url) {
+          return;
+        }
+        await this.getPropertydata(url);
+      }
+    } catch (e) {
+      console.log(JSON.stringify(e));
+    } finally {
+      this.changeSearchStatus('urlsbtn');
     }
-    document.getElementById('urlsbtn').innerHTML = bkText;
   }
   createCaution(text: string) {
     const caution = document.getElementById('cauntion');
@@ -162,5 +168,15 @@ export class PropertyListComponent implements OnInit {
     inputElement.select();
     document.execCommand('copy');
     inputElement.setSelectionRange(0, 0);
+  }
+  changeSearchStatus(id: string) {
+    if (!(document.getElementById(id).innerHTML.indexOf('spinner-border') > 0)) {
+      document.getElementById(id).innerHTML = lodingTemplete + document.getElementById(id).innerHTML;
+    } else {
+      document
+        .getElementById(id)
+        .getElementsByClassName('spinner-border')[0]
+        .remove();
+    }
   }
 }
