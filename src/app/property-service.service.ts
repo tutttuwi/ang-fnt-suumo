@@ -24,8 +24,8 @@ export class PropertyServiceService {
       .toPromise()
       .then(text => {
         console.log('--- response :');
-        console.log(text.res);
-        resultProperty = JSON.parse(text.res);
+        console.log(text);
+        resultProperty = JSON.parse(text);
         resultProperty.isok = true;
       })
       .catch(err => {
